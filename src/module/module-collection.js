@@ -4,6 +4,7 @@ import { assert, forEachValue } from '../util'
 export default class ModuleCollection {
   constructor (rawRootModule) {
     // register root module (Vuex.Store options)
+    this.strict = rawRootModule.strict
     this.register([], rawRootModule, false)
   }
 
@@ -28,6 +29,14 @@ export default class ModuleCollection {
   register (path, rawModule, runtime = true) {
     if (process.env.NODE_ENV !== 'production') {
       assertRawModule(path, rawModule)
+
+      if (this.strict && rawModule.state && typeof rawModule.state === 'object') {
+        console.warn(
+          `[vuex] Module with path '${path}' declares its state with a plain object. ` +
+          'Using a plain object to declare state creates a shared reference that can cause ' +
+          'cross store/module state pollution.'
+        )
+      }
     }
 
     const newModule = new Module(rawModule, runtime)
