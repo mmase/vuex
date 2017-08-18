@@ -4,6 +4,7 @@ import { assert, forEachValue } from '../util'
 export default class ModuleCollection {
   constructor (rawRootModule) {
     // register root module (Vuex.Store options)
+    this.strict = rawRootModule.strict;
     this.register([], rawRootModule, false)
   }
 
@@ -27,7 +28,7 @@ export default class ModuleCollection {
 
   register (path, rawModule, runtime = true) {
     if (process.env.NODE_ENV !== 'production') {
-      assertRawModule(path, rawModule)
+      assertRawModule(path, rawModule, this.strict)
     }
 
     const newModule = new Module(rawModule, runtime)
@@ -57,7 +58,7 @@ export default class ModuleCollection {
 
 function update (path, targetModule, newModule) {
   if (process.env.NODE_ENV !== 'production') {
-    assertRawModule(path, newModule)
+    assertRawModule(path, newModule, this.strict)
   }
 
   // update target module
@@ -84,8 +85,8 @@ function update (path, targetModule, newModule) {
   }
 }
 
-function assertRawModule (path, rawModule) {
-  ['getters', 'actions', 'mutations'].forEach(key => {
+function assertRawModule (path, rawModule, strict) {
+  ['getters', 'actions', 'mutations', ...(strict ? ['state'] : [])].forEach(key => {
     if (!rawModule[key]) return
 
     forEachValue(rawModule[key], (value, type) => {
